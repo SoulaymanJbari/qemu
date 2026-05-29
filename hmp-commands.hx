@@ -1816,6 +1816,20 @@ ERST
         .flags      = "p",
     },
 
+SRST
+``ramulator-test``
+  Affiche un message de test pour verifier que l'infrastructure
+  et la plomberie de tracking Ramulator fonctionnent.
+ERST
+
+    {
+        .name       = "ramulator-test",
+        .args_type  = "",
+        .params     = "",
+        .help       = "Affiche un message de test pour l'infrastructure Ramulator",
+        .cmd        = hmp_ramulator_test,
+    },
+
 #if defined(CONFIG_FDT)
     {
         .name       = "dumpdtb",
@@ -1858,4 +1872,5 @@ SRST
 ``xen-event-list``
   List event channels in the guest
 ERST
+
 #endif

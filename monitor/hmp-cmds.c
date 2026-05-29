@@ -29,6 +29,7 @@
 #include "qemu/cutils.h"
 #include "qemu/log.h"
 #include "system/system.h"
+#include "exec/ramulator_log.h"
 
 bool hmp_handle_error(Monitor *mon, Error *err)
 {
@@ -417,6 +418,13 @@ void hmp_info_mtree(Monitor *mon, const QDict *qdict)
     bool disabled = qdict_get_try_bool(qdict, "disabled", false);
 
     mtree_info(flatview, dispatch_tree, owner, disabled);
+}
+
+void hmp_ramulator_test(Monitor *mon, const QDict *qdict)
+{
+    monitor_printf(mon, "Ramulator: Demande de flush\n");
+    ramulator_trigger_global_flush();
+    monitor_printf(mon, "Ramulator: Flush executé\n");
 }
 
 #if defined(CONFIG_FDT)
