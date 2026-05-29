@@ -18,9 +18,6 @@
 #include "internal-common.h"
 #include "tb-context.h"
 
-#include "exec/tb-flush.h"
-#include "exec/ramulator_log.h"
-
 static void dump_drift_info(GString *buf)
 {
     if (!icount_enabled()) {
@@ -239,15 +236,6 @@ static void hmp_tcg_register(void)
 {
     monitor_register_hmp_info_hrt("jit", qmp_x_query_jit);
     monitor_register_hmp_info_hrt("opcount", qmp_x_query_opcount);
-}
-
-void ramulator_trigger_global_flush(void)
-{
-    CPUState *cpu;
-    cpu = first_cpu; 
-    if (cpu) {
-        tb_flush(cpu);
-    }
 }
 
 type_init(hmp_tcg_register);

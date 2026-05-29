@@ -28,6 +28,7 @@ system_ss.add(when: ['CONFIG_TCG'], if_true: files(
   'tcg-accel-ops.c',
   'tcg-accel-ops-icount.c',
   'tcg-accel-ops-mttcg.c',
+  'ramulator.c',
   'tcg-accel-ops-rr.c',
   'watchpoint.c',
 ))

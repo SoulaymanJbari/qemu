@@ -34,6 +34,7 @@
 #include "tcg/startup.h"
 #include "tcg-accel-ops.h"
 #include "tcg-accel-ops-mttcg.h"
+#include "exec/ramulator_log.h"
 
 typedef struct MttcgForceRcuNotifier {
     Notifier notifier;
@@ -70,6 +71,7 @@ static void *mttcg_cpu_thread_fn(void *arg)
     g_assert(!icount_enabled());
 
     rcu_register_thread();
+    ramulator_init_shm_for_cpu(cpu->cpu_index, cpu);
     force_rcu.notifier.notify = mttcg_force_rcu;
     force_rcu.cpu = cpu;
     rcu_add_force_rcu_notifier(&force_rcu.notifier);

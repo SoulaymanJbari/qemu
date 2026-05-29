@@ -569,6 +569,10 @@ struct CPUState {
     /* track IOMMUs whose translations we've cached in the TCG TLB */
     GArray *iommu_notifiers;
 
+    uint64_t *ramulator_log_ptr;
+    uint64_t *ramulator_log_end;
+    uint64_t ramulator_insn_count;
+
     /*
      * MUST BE LAST in order to minimize the displacement to CPUArchState.
      */
