@@ -8,6 +8,8 @@
 #include "hw/boards.h"
 #include "qemu/notify.h"
 #include "system/system.h"
+#include "tcg/tcg-op-common.h"
+#include "monitor/monitor.h"
 
 static void *global_shm_base = NULL;
 static int shm_fd = -1;
@@ -86,4 +88,12 @@ void ramulator_init_shm_for_cpu(int cpu_index, void *cpu_state_ptr)
     cpu->ramulator_insn_count = 0;
 
     printf("Ramulator SHM: CPU %d connecte au slot SHM\n", cpu_index);
+}
+
+void gen_ramulator_count_instruction(void)
+{
+    TCGv_i64 insn_count = tcg_temp_new_i64();
+    tcg_gen_ld_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
+    tcg_gen_addi_i64(insn_count, insn_count, 1);
+    tcg_gen_st_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
 }

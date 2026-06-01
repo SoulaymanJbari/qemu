@@ -1830,6 +1830,19 @@ ERST
         .cmd        = hmp_ramulator_test,
     },
 
+SRST
+``ramulator-stats``
+  Affiche le nombre d'instructions executées par chaque CPU
+ERST
+
+    {
+        .name       = "ramulator-stats",
+        .args_type  = "",
+        .params     = "",
+        .help       = "Affiche le compteur d'instructions Ramulator pour chaque vCPU",
+        .cmd        = hmp_ramulator_dump_stats,
+    },
+
 #if defined(CONFIG_FDT)
     {
         .name       = "dumpdtb",

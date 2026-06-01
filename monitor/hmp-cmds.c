@@ -30,6 +30,7 @@
 #include "qemu/log.h"
 #include "system/system.h"
 #include "exec/ramulator_log.h"
+#include "hw/core/cpu.h"
 
 bool hmp_handle_error(Monitor *mon, Error *err)
 {
@@ -425,6 +426,15 @@ void hmp_ramulator_test(Monitor *mon, const QDict *qdict)
     monitor_printf(mon, "Ramulator: Demande de flush\n");
     ramulator_trigger_global_flush();
     monitor_printf(mon, "Ramulator: Flush executé\n");
+}
+
+void hmp_ramulator_dump_stats(Monitor *mon, const QDict *qdict)
+{
+    CPUState *cpu;
+
+    CPU_FOREACH(cpu) {
+        monitor_printf(mon, "CPU-%d : %lu instructions executées", cpu->cpu_index, cpu->ramulator_insn_count);
+    }
 }
 
 #if defined(CONFIG_FDT)

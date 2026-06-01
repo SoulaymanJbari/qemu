@@ -20,6 +20,7 @@
 #include "internal-target.h"
 #include "disas/disas.h"
 #include "tb-internal.h"
+#include "exec/ramulator_log.h"
 
 static void set_can_do_io(DisasContextBase *db, bool val)
 {
@@ -174,6 +175,7 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
          * the next instruction.
          */
         ops->translate_insn(db, cpu);
+        gen_ramulator_count_instruction();
 
         /*
          * We can't instrument after instructions that change control

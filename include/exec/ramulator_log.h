@@ -17,7 +17,7 @@ typedef struct LogRecord {
 } LogRecord;
 
 void ramulator_trigger_global_flush(void);
-
 void ramulator_init_shm_for_cpu(int cpu_index, void *cpu_state_ptr);
+void gen_ramulator_count_instruction(void);
 
 #endif
