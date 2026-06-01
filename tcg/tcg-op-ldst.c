@@ -32,6 +32,7 @@
 #include "tcg-internal.h"
 #include "tcg-has.h"
 #include "tcg-target-mo.h"
+#include "exec/ramulator_log.h"
 
 static void check_max_alignment(unsigned a_bits)
 {
@@ -341,6 +342,7 @@ static void tcg_gen_qemu_ld_i64_int(TCGv_i64 val, TCGTemp *addr,
     }
 
     copy_addr = plugin_maybe_preserve_addr(addr);
+    gen_ramulator_ptr_increment();
     gen_ldst_i64(INDEX_op_qemu_ld_i64, val, addr, oi);
     plugin_gen_mem_callbacks_i64(val, copy_addr, addr, orig_oi,
                                  QEMU_PLUGIN_MEM_R);
@@ -407,7 +409,7 @@ static void tcg_gen_qemu_st_i64_int(TCGv_i64 val, TCGTemp *addr,
         memop &= ~MO_BSWAP;
         oi = make_memop_idx(memop, idx);
     }
-
+    gen_ramulator_ptr_increment();
     gen_ldst_i64(INDEX_op_qemu_st_i64, val, addr, oi);
     plugin_gen_mem_callbacks_i64(val, NULL, addr, orig_oi, QEMU_PLUGIN_MEM_W);
 

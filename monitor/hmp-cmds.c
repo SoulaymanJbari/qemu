@@ -443,7 +443,7 @@ void hmp_ramulator_dump_stats(Monitor *mon, const QDict *qdict)
     CPUState *cpu;
 
     CPU_FOREACH(cpu) {
-        monitor_printf(mon, "CPU-%d : %lu instructions executées\n", cpu->cpu_index, cpu->ramulator_insn_count);
+        monitor_printf(mon, "CPU-%d : %lu instructions executées, ptr : %p\n", cpu->cpu_index, cpu->ramulator_insn_count, cpu->ramulator_log_ptr);
     }
 }
 

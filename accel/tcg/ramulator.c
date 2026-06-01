@@ -102,10 +102,32 @@ void gen_ramulator_count_instruction(void)
     tcg_gen_st_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
 }
 
+void gen_ramulator_ptr_increment(void)
+{
+    if (!ramulator_trace_active) {
+        return;
+    }
+    TCGv_i64 log_ptr = tcg_temp_new_i64();
+    TCGv_i64 log_end = tcg_temp_new_i64();
+    TCGLabel *label_buffer_full = gen_new_label();
+
+    tcg_gen_ld_i64(log_ptr, tcg_env, offsetof(CPUState, ramulator_log_ptr) - sizeof(CPUState));
+    tcg_gen_ld_i64(log_end, tcg_env, offsetof(CPUState, ramulator_log_end) - sizeof(CPUState));
+    tcg_gen_brcond_i64(TCG_COND_GEU, log_ptr, log_end, label_buffer_full);
+
+    tcg_gen_addi_i64(log_ptr, log_ptr, sizeof(LogRecord));
+    tcg_gen_st_i64(log_ptr, tcg_env, offsetof(CPUState, ramulator_log_ptr) - sizeof(CPUState));
+
+
+    gen_set_label(label_buffer_full);
+}
+
 void ramulator_reset_counters(void)
 {
     CPUState *cpu;
     CPU_FOREACH(cpu) {
         cpu->ramulator_insn_count = 0;
+        uint8_t *base_shm_cpu = (uint8_t *)cpu->ramulator_log_end - LOG_BUFFER_SIZE_PER_CPU;
+        cpu->ramulator_log_ptr = (uint64_t *)base_shm_cpu;
     }
 }

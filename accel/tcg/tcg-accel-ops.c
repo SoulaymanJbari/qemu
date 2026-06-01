@@ -45,6 +45,7 @@
 #include "tcg-accel-ops-mttcg.h"
 #include "tcg-accel-ops-rr.h"
 #include "tcg-accel-ops-icount.h"
+#include "exec/ramulator_log.h"
 
 /* common functionality among all TCG variants */
 
