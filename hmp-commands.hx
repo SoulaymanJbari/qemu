@@ -1817,17 +1817,29 @@ ERST
     },
 
 SRST
-``ramulator-test``
-  Affiche un message de test pour verifier que l'infrastructure
-  et la plomberie de tracking Ramulator fonctionnent.
+``ramulator-start``
+  Effectue un flush et active la variable de traçage
 ERST
 
     {
-        .name       = "ramulator-test",
+        .name       = "ramulator-start",
         .args_type  = "",
         .params     = "",
-        .help       = "Affiche un message de test pour l'infrastructure Ramulator",
-        .cmd        = hmp_ramulator_test,
+        .help       = "Effectue un flush et active la variable de traçage",
+        .cmd        = hmp_ramulator_start,
+    },
+
+SRST
+``ramulator-start``
+  Effectue un flush et désactive la variable de traçage
+ERST
+
+    {
+        .name       = "ramulator-stop",
+        .args_type  = "",
+        .params     = "",
+        .help       = "Effectue un flush et désactive la variable de traçage",
+        .cmd        = hmp_ramulator_stop,
     },
 
 SRST

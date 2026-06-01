@@ -421,11 +421,21 @@ void hmp_info_mtree(Monitor *mon, const QDict *qdict)
     mtree_info(flatview, dispatch_tree, owner, disabled);
 }
 
-void hmp_ramulator_test(Monitor *mon, const QDict *qdict)
+void hmp_ramulator_start(Monitor *mon, const QDict *qdict)
 {
-    monitor_printf(mon, "Ramulator: Demande de flush\n");
+    monitor_printf(mon, "Ramulator: Activation de la trace demandée\n");
+    ramulator_trace_active = true;
     ramulator_trigger_global_flush();
-    monitor_printf(mon, "Ramulator: Flush executé\n");
+    monitor_printf(mon, "Ramulator: Activation de la trace effectuée\n");
+}
+
+void hmp_ramulator_stop(Monitor *mon, const QDict *qdict)
+{
+    monitor_printf(mon, "Ramulator: Desactivation de la trace demandée\n");
+    ramulator_trace_active = false;
+    ramulator_trigger_global_flush();
+    ramulator_reset_counters();
+    monitor_printf(mon, "Ramulator: Desactivation de la trace effectuée\n");
 }
 
 void hmp_ramulator_dump_stats(Monitor *mon, const QDict *qdict)
@@ -433,7 +443,7 @@ void hmp_ramulator_dump_stats(Monitor *mon, const QDict *qdict)
     CPUState *cpu;
 
     CPU_FOREACH(cpu) {
-        monitor_printf(mon, "CPU-%d : %lu instructions executées", cpu->cpu_index, cpu->ramulator_insn_count);
+        monitor_printf(mon, "CPU-%d : %lu instructions executées\n", cpu->cpu_index, cpu->ramulator_insn_count);
     }
 }
 

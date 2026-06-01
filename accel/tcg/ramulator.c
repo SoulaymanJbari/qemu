@@ -15,6 +15,7 @@ static void *global_shm_base = NULL;
 static int shm_fd = -1;
 static size_t global_shm_size = 0;
 static Notifier ramulator_exit_notifier;
+bool ramulator_trace_active = false;
 
 void ramulator_trigger_global_flush(void)
 {
@@ -92,8 +93,19 @@ void ramulator_init_shm_for_cpu(int cpu_index, void *cpu_state_ptr)
 
 void gen_ramulator_count_instruction(void)
 {
+    if (!ramulator_trace_active) {
+        return;
+    }
     TCGv_i64 insn_count = tcg_temp_new_i64();
     tcg_gen_ld_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
     tcg_gen_addi_i64(insn_count, insn_count, 1);
     tcg_gen_st_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
+}
+
+void ramulator_reset_counters(void)
+{
+    CPUState *cpu;
+    CPU_FOREACH(cpu) {
+        cpu->ramulator_insn_count = 0;
+    }
 }
