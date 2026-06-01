@@ -443,7 +443,41 @@ void hmp_ramulator_dump_stats(Monitor *mon, const QDict *qdict)
     CPUState *cpu;
 
     CPU_FOREACH(cpu) {
-        monitor_printf(mon, "CPU-%d : %lu instructions executées, ptr : %p\n", cpu->cpu_index, cpu->ramulator_insn_count, cpu->ramulator_log_ptr);
+        monitor_printf(mon, "=== CPU-%d : %lu instructions executées, ptr actuel : %p ===\n", 
+                       cpu->cpu_index, cpu->ramulator_insn_count, cpu->ramulator_log_ptr);
+
+        if (!cpu->ramulator_log_ptr || !cpu->ramulator_log_end) {
+            monitor_printf(mon, "  [Buffer non initialisé]\n");
+            continue;
+        }
+
+        /* 1. Calculer l'adresse de départ de la SHM pour ce CPU */
+        LogRecord *shm_start = (LogRecord *)((uint8_t *)cpu->ramulator_log_end - LOG_BUFFER_SIZE_PER_CPU);
+        LogRecord *current_rec = (LogRecord *)cpu->ramulator_log_ptr;
+
+        monitor_printf(mon, "  Derniers enregistrements (10 max) :\n");
+
+        /* 2. On recule de 10 enregistrements (si possible) pour afficher les plus récents */
+        int count = 0;
+        LogRecord *inspect_rec = current_rec - 1; /* Le dernier écrit est juste avant le pointeur actuel */
+
+        while (inspect_rec >= shm_start && count < 10) {
+            monitor_printf(mon, "  [%d] Clock: %lu | Insn_local: %lu | Type: %s | Size: %d | Addr: 0x%lx\n",
+                           count,
+                           inspect_rec->logical_clock,
+                           inspect_rec->insn_count,
+                           inspect_rec->store ? "STORE" : "LOAD",
+                           inspect_rec->access_size,
+                           inspect_rec->address);
+            
+            inspect_rec--; /* On recule vers le record précédent */
+            count++;
+        }
+
+        if (count == 0) {
+            monitor_printf(mon, "  [Buffer encore vide ou pointeur au début]\n");
+        }
+        monitor_printf(mon, "=======================================================\n");
     }
 }
 
