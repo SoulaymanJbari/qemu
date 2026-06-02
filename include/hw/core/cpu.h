@@ -572,6 +572,7 @@ struct CPUState {
     uint64_t *ramulator_log_ptr;
     uint64_t *ramulator_log_end;
     uint64_t ramulator_insn_count;
+    size_t ramulator_log_size;
 
     /*
      * MUST BE LAST in order to minimize the displacement to CPUArchState.

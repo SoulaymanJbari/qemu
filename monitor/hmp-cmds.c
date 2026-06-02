@@ -424,6 +424,7 @@ void hmp_info_mtree(Monitor *mon, const QDict *qdict)
 void hmp_ramulator_start(Monitor *mon, const QDict *qdict)
 {
     monitor_printf(mon, "Ramulator: Activation de la trace demandée\n");
+    ramulator_reset_counters();
     ramulator_trace_active = true;
     ramulator_trigger_global_flush();
     monitor_printf(mon, "Ramulator: Activation de la trace effectuée\n");
@@ -434,7 +435,7 @@ void hmp_ramulator_stop(Monitor *mon, const QDict *qdict)
     monitor_printf(mon, "Ramulator: Desactivation de la trace demandée\n");
     ramulator_trace_active = false;
     ramulator_trigger_global_flush();
-    ramulator_reset_counters();
+    ramulator_write_metadata();
     monitor_printf(mon, "Ramulator: Desactivation de la trace effectuée\n");
 }
 
@@ -452,7 +453,7 @@ void hmp_ramulator_dump_stats(Monitor *mon, const QDict *qdict)
         }
 
         /* 1. Calculer l'adresse de départ de la SHM pour ce CPU */
-        LogRecord *shm_start = (LogRecord *)((uint8_t *)cpu->ramulator_log_end - LOG_BUFFER_SIZE_PER_CPU);
+        LogRecord *shm_start = (LogRecord *)((uint8_t *)cpu->ramulator_log_end - cpu->ramulator_log_size);
         LogRecord *current_rec = (LogRecord *)cpu->ramulator_log_ptr;
 
         monitor_printf(mon, "  Derniers enregistrements (10 max) :\n");

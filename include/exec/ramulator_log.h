@@ -25,5 +25,6 @@ void ramulator_init_shm_for_cpu(int cpu_index, void *cpu_state_ptr);
 void gen_ramulator_count_instruction(void);
 void gen_ramulator_ptr_increment(int is_store, int size, TCGv_i64 vaddr);
 void ramulator_reset_counters(void);
+void ramulator_write_metadata(void);
 
 #endif
