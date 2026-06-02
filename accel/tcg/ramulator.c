@@ -102,7 +102,7 @@ void gen_ramulator_count_instruction(void)
     tcg_gen_st_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
 }
 
-void gen_ramulator_ptr_increment(int is_store, int size)
+void gen_ramulator_ptr_increment(int is_store, int size, TCGv_i64 vaddr)
 {
     if (!ramulator_trace_active) {
         return;
@@ -117,6 +117,8 @@ void gen_ramulator_ptr_increment(int is_store, int size)
     tcg_gen_ld_ptr(log_ptr, tcg_env, offsetof(CPUState, ramulator_log_ptr) - sizeof(CPUState));
     tcg_gen_ld_ptr(log_end, tcg_env, offsetof(CPUState, ramulator_log_end) - sizeof(CPUState));
     tcg_gen_brcond_i64(TCG_COND_GEU, (TCGv_i64)log_ptr, (TCGv_i64)log_end, label_buffer_full);
+
+    tcg_gen_st_i64(vaddr, log_ptr, offsetof(LogRecord, address));
 
     gen_helper_ramulator_get_clock(host_clock);
     tcg_gen_st_i64(host_clock, log_ptr, offsetof(LogRecord, logical_clock));
