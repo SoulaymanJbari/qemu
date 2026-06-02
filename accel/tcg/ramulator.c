@@ -118,8 +118,8 @@ void gen_ramulator_ptr_increment(int is_store, int size, TCGv_i64 vaddr)
     tcg_gen_ld_ptr(log_end, tcg_env, offsetof(CPUState, ramulator_log_end) - sizeof(CPUState));
     tcg_gen_brcond_i64(TCG_COND_GEU, (TCGv_i64)log_ptr, (TCGv_i64)log_end, label_buffer_full);
 
-    tcg_gen_st_i64(vaddr, log_ptr, offsetof(LogRecord, address));
-
+    gen_helper_ramulator_write_phys_test(tcg_env, vaddr);
+    
     gen_helper_ramulator_get_clock(host_clock);
     tcg_gen_st_i64(host_clock, log_ptr, offsetof(LogRecord, logical_clock));
 
