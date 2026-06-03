@@ -2950,27 +2950,31 @@ uint64_t cpu_ldq_code_mmu(CPUArchState *env, abi_ptr addr,
     return do_ld8_mmu(env_cpu(env), addr, oi, retaddr, MMU_INST_FETCH);
 }
 
-void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr)
+void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr, uint32_t is_store, uint32_t size)
 {
     CPUState *cpu = env_cpu(env);
+    LogRecord *log_ptr = (LogRecord *)cpu->ramulator_log_ptr;
+    if (!log_ptr || (uintptr_t)log_ptr >= (uintptr_t)cpu->ramulator_log_end) {
+        return;
+    }
     int mmu_idx = cpu_mmu_index(cpu, false);
     CPUTLBEntry *tlbe = tlb_entry(cpu, mmu_idx, vaddr);
     uintptr_t index = tlb_index(cpu, mmu_idx, vaddr);
     
     uint64_t tlb_addr = tlb_read_idx(tlbe, MMU_DATA_LOAD);
+    uint64_t phys_addr = 0xDEADBEEF;
 
     if (likely(tlb_hit(tlb_addr, vaddr))) {
         CPUTLBEntryFull *full = &cpu->neg.tlb.d[mmu_idx].fulltlb[index];
-        uint64_t phys_addr = full->phys_addr | (vaddr & ~TARGET_PAGE_MASK);
-
-        LogRecord *log_ptr = (LogRecord *)cpu->ramulator_log_ptr;
-        if (log_ptr && (uintptr_t)log_ptr < (uintptr_t)cpu->ramulator_log_end) {
-            log_ptr->address = phys_addr;
-        }
-    } else {
-        LogRecord *log_ptr = (LogRecord *)cpu->ramulator_log_ptr;
-        if (log_ptr && (uintptr_t)log_ptr < (uintptr_t)cpu->ramulator_log_end) {
-            log_ptr->address = 0xDEADBEEF;
-        }
+        phys_addr = full->phys_addr | (vaddr & ~TARGET_PAGE_MASK);
     }
+    log_ptr->address = phys_addr;
+    log_ptr->insn_count = cpu->ramulator_insn_count;
+    log_ptr->cpu = (char)cpu->cpu_index;
+    log_ptr->store = (char)is_store;
+    log_ptr->access_size = (char)size;
+    uint64_t clock_val;
+    asm volatile("mrs %0, cntvct_el0" : "=r" (clock_val));
+    log_ptr->logical_clock = clock_val;
+    cpu->ramulator_log_ptr = (uint64_t *)((uint8_t *)log_ptr + sizeof(LogRecord));
 }

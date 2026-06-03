@@ -167,6 +167,7 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
         if (plugin_enabled) {
             plugin_gen_insn_start(cpu, db);
         }
+        gen_ramulator_count_instruction();
 
         /*
          * Disassemble one instruction.  The translate_insn hook should
@@ -175,7 +176,6 @@ void translator_loop(CPUState *cpu, TranslationBlock *tb, int *max_insns,
          * the next instruction.
          */
         ops->translate_insn(db, cpu);
-        gen_ramulator_count_instruction();
 
         /*
          * We can't instrument after instructions that change control

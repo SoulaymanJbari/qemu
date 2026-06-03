@@ -114,39 +114,10 @@ void gen_ramulator_ptr_increment(int is_store, int size, TCGv_i64 vaddr)
     if (!ramulator_trace_active) {
         return;
     }
-    TCGv_ptr log_ptr = tcg_temp_new_ptr();
-    TCGv_ptr log_end = tcg_temp_new_ptr();
-    TCGv_i64 host_clock = tcg_temp_new_i64();
-    TCGv_i64 local_insn = tcg_temp_new_i64();
-    TCGv_i32 cpu_index = tcg_temp_new_i32();
-    TCGLabel *label_buffer_full = gen_new_label();
-
-    tcg_gen_ld_ptr(log_ptr, tcg_env, offsetof(CPUState, ramulator_log_ptr) - sizeof(CPUState));
-    tcg_gen_ld_ptr(log_end, tcg_env, offsetof(CPUState, ramulator_log_end) - sizeof(CPUState));
-    tcg_gen_brcond_i64(TCG_COND_GEU, (TCGv_i64)log_ptr, (TCGv_i64)log_end, label_buffer_full);
-
-    gen_helper_ramulator_write_phys_test(tcg_env, vaddr);
-    
-    gen_helper_ramulator_get_clock(host_clock);
-    tcg_gen_st_i64(host_clock, log_ptr, offsetof(LogRecord, logical_clock));
-
-    tcg_gen_ld_i64(local_insn, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
-    tcg_gen_st_i64(local_insn, log_ptr, offsetof(LogRecord, insn_count));
-
-    tcg_gen_ld_i32(cpu_index, tcg_env, offsetof(CPUState, cpu_index) - sizeof(CPUState));
-    tcg_gen_st8_i32(cpu_index, log_ptr, offsetof(LogRecord, cpu));
-
     TCGv_i32 store_val = tcg_constant_i32(is_store);
-    tcg_gen_st8_i32(store_val, log_ptr, offsetof(LogRecord, store));
-
     TCGv_i32 size_val = tcg_constant_i32(size);
-    tcg_gen_st8_i32(size_val, log_ptr, offsetof(LogRecord, access_size));
 
-    tcg_gen_addi_ptr(log_ptr, log_ptr, sizeof(LogRecord));
-    tcg_gen_st_ptr(log_ptr, tcg_env, offsetof(CPUState, ramulator_log_ptr) - sizeof(CPUState));
-
-
-    gen_set_label(label_buffer_full);
+    gen_helper_ramulator_write_phys_test(tcg_env, vaddr, store_val, size_val);
 }
 
 void ramulator_reset_counters(void)
