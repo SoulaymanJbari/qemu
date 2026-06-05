@@ -2975,13 +2975,15 @@ void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr, uint3
     local_rec->cpu = (char)cpu->cpu_index;
     local_rec->store = (char)is_store;
     local_rec->access_size = (char)size;
-    uint64_t clock_val;
-    asm volatile("mrs %0, cntvct_el0" : "=r" (clock_val));
-    local_rec->logical_clock = clock_val;
+    local_rec->logical_clock = 0;
     idx++;
     if (unlikely(idx == 128)) {
+        uint64_t real_hardware_clock;
+        asm volatile("mrs %0, cntvct_el0" : "=r" (real_hardware_clock));
+        local_rec->logical_clock = real_hardware_clock;
         memcpy(cpu->ramulator_log_ptr, cpu->ramulator_local_buf, sizeof(cpu->ramulator_local_buf));
         cpu->ramulator_log_ptr = (uint64_t *)((uint8_t *)cpu->ramulator_log_ptr + sizeof(cpu->ramulator_local_buf));
         idx = 0;
     }
+    cpu->ramulator_local_idx = idx;
 }
