@@ -10,16 +10,6 @@ extern bool ramulator_trace_active;
 
 typedef struct TCGv_i64_d *TCGv_i64;
 
-typedef struct LogRecord {
-    uint64_t logical_clock;
-    uint64_t insn_count;
-    char cpu;
-    char store;
-    char access_size;
-    char padding[5];
-    uint64_t address;
-} LogRecord;
-
 void ramulator_trigger_global_flush(void);
 void ramulator_init_shm_for_cpu(int cpu_index, void *cpu_state_ptr);
 void gen_ramulator_count_instruction(void);

@@ -86,6 +86,16 @@ DECLARE_CLASS_CHECKERS(CPUClass, CPU,
 
 typedef struct CPUWatchpoint CPUWatchpoint;
 
+typedef struct LogRecord {
+    uint64_t logical_clock;
+    uint64_t insn_count;
+    char cpu;
+    char store;
+    char access_size;
+    char padding[5];
+    uint64_t address;
+} LogRecord;
+
 /* see physmem.c */
 struct CPUAddressSpace;
 
@@ -573,6 +583,8 @@ struct CPUState {
     uint64_t *ramulator_log_end;
     uint64_t ramulator_insn_count;
     size_t ramulator_log_size;
+    LogRecord ramulator_local_buf[128];
+    uint32_t ramulator_local_idx;
 
     /*
      * MUST BE LAST in order to minimize the displacement to CPUArchState.

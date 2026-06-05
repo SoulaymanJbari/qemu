@@ -94,6 +94,7 @@ void ramulator_init_shm_for_cpu(int cpu_index, void *cpu_state_ptr)
     cpu->ramulator_log_end   = (uint64_t *)(cpu_shm_start + buf_size_per_cpu);
     cpu->ramulator_insn_count = 0;
     cpu->ramulator_log_size   = buf_size_per_cpu;
+    cpu->ramulator_local_idx  = 0;
 
     printf("Ramulator SHM: CPU %d connecte au slot SHM\n", cpu_index);
 }

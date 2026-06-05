@@ -2968,13 +2968,21 @@ void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr, uint3
         CPUTLBEntryFull *full = &cpu->neg.tlb.d[mmu_idx].fulltlb[index];
         phys_addr = full->phys_addr | (vaddr & ~TARGET_PAGE_MASK);
     }
-    log_ptr->address = phys_addr;
-    log_ptr->insn_count = cpu->ramulator_insn_count;
-    log_ptr->cpu = (char)cpu->cpu_index;
-    log_ptr->store = (char)is_store;
-    log_ptr->access_size = (char)size;
+    uint32_t idx = cpu->ramulator_local_idx;
+    LogRecord *local_rec = &cpu->ramulator_local_buf[idx];
+    local_rec->address = phys_addr;
+    local_rec->insn_count = cpu->ramulator_insn_count;
+    local_rec->cpu = (char)cpu->cpu_index;
+    local_rec->store = (char)is_store;
+    local_rec->access_size = (char)size;
     uint64_t clock_val;
     asm volatile("mrs %0, cntvct_el0" : "=r" (clock_val));
-    log_ptr->logical_clock = clock_val;
+    local_rec->logical_clock = clock_val;
+    idx++;
+    if (unlikely(idx == 128)) {
+        memcpy(cpu->ramulator_log_ptr, cpu->ramulator_local_buf, sizeof(cpu->ramulator_local_buf));
+        cpu->ramulator_log_ptr = (uint64_t *)((uint8_t *)cpu->ramulator_log_ptr + sizeof(cpu->ramulator_local_buf));
+        idx = 0;
+    }
     cpu->ramulator_log_ptr = (uint64_t *)((uint8_t *)log_ptr + sizeof(LogRecord));
 }
