@@ -2984,5 +2984,4 @@ void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr, uint3
         cpu->ramulator_log_ptr = (uint64_t *)((uint8_t *)cpu->ramulator_log_ptr + sizeof(cpu->ramulator_local_buf));
         idx = 0;
     }
-    cpu->ramulator_log_ptr = (uint64_t *)((uint8_t *)log_ptr + sizeof(LogRecord));
 }
