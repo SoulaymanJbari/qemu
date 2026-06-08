@@ -233,8 +233,15 @@ static void tcg_gen_qemu_ld_i32_int(TCGv_i32 val, TCGTemp *addr,
     }
 
     copy_addr = plugin_maybe_preserve_addr(addr);
+    TCGv_i64 vaddr = tcg_temp_ebb_new_i64();
+    if (tcg_ctx->addr_type == TCG_TYPE_I32) {
+        tcg_gen_extu_i32_i64(vaddr, temp_tcgv_i32(addr));
+    } else {
+        tcg_gen_mov_i64(vaddr, temp_tcgv_i64(addr));
+    }
     gen_ldst(INDEX_op_qemu_ld_i32, TCG_TYPE_I32,
              tcgv_i32_temp(val), NULL, addr, oi);
+    gen_ramulator_ptr_increment(0, memop & MO_SIZE, vaddr, oi);
     plugin_gen_mem_callbacks_i32(val, copy_addr, addr, orig_oi,
                                  QEMU_PLUGIN_MEM_R);
 
@@ -295,7 +302,14 @@ static void tcg_gen_qemu_st_i32_int(TCGv_i32 val, TCGTemp *addr,
     } else {
         opc = INDEX_op_qemu_st_i32;
     }
+    TCGv_i64 vaddr = tcg_temp_ebb_new_i64();
+    if (tcg_ctx->addr_type == TCG_TYPE_I32) {
+        tcg_gen_extu_i32_i64(vaddr, temp_tcgv_i32(addr));
+    } else {
+        tcg_gen_mov_i64(vaddr, temp_tcgv_i64(addr));
+    }
     gen_ldst(opc, TCG_TYPE_I32, tcgv_i32_temp(val), NULL, addr, oi);
+    gen_ramulator_ptr_increment(1, memop & MO_SIZE, vaddr, oi);
     plugin_gen_mem_callbacks_i32(val, NULL, addr, orig_oi, QEMU_PLUGIN_MEM_W);
 
     if (swap) {
@@ -343,9 +357,13 @@ static void tcg_gen_qemu_ld_i64_int(TCGv_i64 val, TCGTemp *addr,
 
     copy_addr = plugin_maybe_preserve_addr(addr);
     TCGv_i64 vaddr = tcg_temp_ebb_new_i64();
-    tcg_gen_mov_i64(vaddr, temp_tcgv_i64(addr));
+    if (tcg_ctx->addr_type == TCG_TYPE_I32) {
+        tcg_gen_extu_i32_i64(vaddr, temp_tcgv_i32(addr));
+    } else {
+        tcg_gen_mov_i64(vaddr, temp_tcgv_i64(addr));
+    }
     gen_ldst_i64(INDEX_op_qemu_ld_i64, val, addr, oi);
-    gen_ramulator_ptr_increment(0, memop_size(memop), vaddr);
+    gen_ramulator_ptr_increment(0, memop & MO_SIZE, vaddr, oi);
     plugin_gen_mem_callbacks_i64(val, copy_addr, addr, orig_oi,
                                  QEMU_PLUGIN_MEM_R);
 
@@ -412,9 +430,13 @@ static void tcg_gen_qemu_st_i64_int(TCGv_i64 val, TCGTemp *addr,
         oi = make_memop_idx(memop, idx);
     }
     TCGv_i64 vaddr = tcg_temp_ebb_new_i64();
-    tcg_gen_mov_i64(vaddr, temp_tcgv_i64(addr));
+    if (tcg_ctx->addr_type == TCG_TYPE_I32) {
+        tcg_gen_extu_i32_i64(vaddr, temp_tcgv_i32(addr));
+    } else {
+        tcg_gen_mov_i64(vaddr, temp_tcgv_i64(addr));
+    }
     gen_ldst_i64(INDEX_op_qemu_st_i64, val, addr, oi);
-    gen_ramulator_ptr_increment(1, memop_size(memop), vaddr);
+    gen_ramulator_ptr_increment(1, memop & MO_SIZE, vaddr, oi);
     plugin_gen_mem_callbacks_i64(val, NULL, addr, orig_oi, QEMU_PLUGIN_MEM_W);
 
     if (swap) {
@@ -529,7 +551,12 @@ static void tcg_gen_qemu_ld_i128_int(TCGv_i128 val, TCGTemp *addr,
 
     check_max_alignment(memop_alignment_bits(memop));
     tcg_gen_req_mo(TCG_MO_LD_LD | TCG_MO_ST_LD);
-
+    TCGv_i64 vaddr = tcg_temp_ebb_new_i64();
+    if (tcg_ctx->addr_type == TCG_TYPE_I32) {
+        tcg_gen_extu_i32_i64(vaddr, temp_tcgv_i32(addr));
+    } else {
+        tcg_gen_mov_i64(vaddr, temp_tcgv_i64(addr));
+    }
     /* In serial mode, reduce atomicity. */
     if (!(tcg_ctx->gen_tb->cflags & CF_PARALLEL)) {
         memop &= ~MO_ATOM_MASK;
@@ -615,7 +642,7 @@ static void tcg_gen_qemu_ld_i128_int(TCGv_i128 val, TCGTemp *addr,
         gen_helper_ld_i128(val, tcg_env, temp_tcgv_i64(addr),
                            tcg_constant_i32(orig_oi));
     }
-
+    gen_ramulator_ptr_increment(0, memop & MO_SIZE, vaddr, orig_oi);
     plugin_gen_mem_callbacks_i128(val, ext_addr, addr, orig_oi,
                                   QEMU_PLUGIN_MEM_R);
 }
@@ -637,6 +664,12 @@ static void tcg_gen_qemu_st_i128_int(TCGv_i128 val, TCGTemp *addr,
 
     check_max_alignment(memop_alignment_bits(memop));
     tcg_gen_req_mo(TCG_MO_ST_LD | TCG_MO_ST_ST);
+    TCGv_i64 vaddr = tcg_temp_ebb_new_i64();
+    if (tcg_ctx->addr_type == TCG_TYPE_I32) {
+        tcg_gen_extu_i32_i64(vaddr, temp_tcgv_i32(addr));
+    } else {
+        tcg_gen_mov_i64(vaddr, temp_tcgv_i64(addr));
+    }
 
     /* In serial mode, reduce atomicity. */
     if (!(tcg_ctx->gen_tb->cflags & CF_PARALLEL)) {
@@ -724,7 +757,7 @@ static void tcg_gen_qemu_st_i128_int(TCGv_i128 val, TCGTemp *addr,
         gen_helper_st_i128(tcg_env, temp_tcgv_i64(addr), val,
                            tcg_constant_i32(orig_oi));
     }
-
+    gen_ramulator_ptr_increment(1, memop & MO_SIZE, vaddr, orig_oi);
     plugin_gen_mem_callbacks_i128(val, ext_addr, addr, orig_oi,
                                   QEMU_PLUGIN_MEM_W);
 }

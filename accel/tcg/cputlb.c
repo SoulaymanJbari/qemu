@@ -2950,14 +2950,13 @@ uint64_t cpu_ldq_code_mmu(CPUArchState *env, abi_ptr addr,
     return do_ld8_mmu(env_cpu(env), addr, oi, retaddr, MMU_INST_FETCH);
 }
 
-void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr, uint32_t is_store, uint32_t size)
+void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr, uint32_t is_store, uint32_t size, unsigned mmu_idx)
 {
     CPUState *cpu = env_cpu(env);
     LogRecord *log_ptr = (LogRecord *)cpu->ramulator_log_ptr;
     if (!log_ptr || (uintptr_t)log_ptr >= (uintptr_t)cpu->ramulator_log_end) {
         return;
     }
-    int mmu_idx = cpu_mmu_index(cpu, false);
     CPUTLBEntry *tlbe = tlb_entry(cpu, mmu_idx, vaddr);
     uintptr_t index = tlb_index(cpu, mmu_idx, vaddr);
     

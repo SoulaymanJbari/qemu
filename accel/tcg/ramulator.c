@@ -110,15 +110,17 @@ void gen_ramulator_count_instruction(void)
     tcg_gen_st_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
 }
 
-void gen_ramulator_ptr_increment(int is_store, int size, TCGv_i64 vaddr)
+void gen_ramulator_ptr_increment(int is_store, int size, TCGv_i64 vaddr, unsigned oi)
 {
     if (!ramulator_trace_active) {
         return;
     }
     TCGv_i32 store_val = tcg_constant_i32(is_store);
     TCGv_i32 size_val = tcg_constant_i32(size);
+    int mmu_idx = get_mmuidx(oi);
+    TCGv_i32 mmu_val = tcg_constant_i32(mmu_idx);
 
-    gen_helper_ramulator_write_phys_test(tcg_env, vaddr, store_val, size_val);
+    gen_helper_ramulator_write_phys_test(tcg_env, vaddr, store_val, size_val, mmu_val);
 }
 
 void ramulator_reset_counters(void)

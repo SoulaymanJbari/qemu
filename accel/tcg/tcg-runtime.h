@@ -324,4 +324,4 @@ DEF_HELPER_FLAGS_4(gvec_leus64, TCG_CALL_NO_RWG, void, ptr, ptr, i64, i32)
 
 DEF_HELPER_FLAGS_5(gvec_bitsel, TCG_CALL_NO_RWG, void, ptr, ptr, ptr, ptr, i32)
 
-DEF_HELPER_FLAGS_4(ramulator_write_phys_test, TCG_CALL_NO_RWG, void, env, i64, i32, i32)
+DEF_HELPER_FLAGS_5(ramulator_write_phys_test, TCG_CALL_NO_RWG, void, env, i64, i32, i32, i32)
