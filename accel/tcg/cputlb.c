@@ -2961,10 +2961,13 @@ void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr, uint3
     CPUTLBEntry *tlbe = tlb_entry(cpu, mmu_idx, vaddr);
     uintptr_t index = tlb_index(cpu, mmu_idx, vaddr);
     
-    uint64_t tlb_addr = tlb_read_idx(tlbe, MMU_DATA_LOAD);
+    uint64_t tlb_addr = tlb_read_idx(tlbe, is_store ? MMU_DATA_STORE : MMU_DATA_LOAD);
     uint64_t phys_addr = 0xDEADBEEF;
 
     if (likely(tlb_hit(tlb_addr, vaddr))) {
+        if (unlikely(tlb_addr & TLB_MMIO)) {
+            return; 
+        }
         CPUTLBEntryFull *full = &cpu->neg.tlb.d[mmu_idx].fulltlb[index];
         phys_addr = full->phys_addr | (vaddr & ~TARGET_PAGE_MASK);
     }
