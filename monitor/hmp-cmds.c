@@ -463,9 +463,8 @@ void hmp_ramulator_dump_stats(Monitor *mon, const QDict *qdict)
         LogRecord *inspect_rec = current_rec - 1; /* Le dernier écrit est juste avant le pointeur actuel */
 
         while (inspect_rec >= shm_start && count < 10) {
-            monitor_printf(mon, "  [%d] Clock: %lu | Insn_local: %lu | Type: %s | Size: %d | Addr: 0x%lx\n",
+            monitor_printf(mon, "  [%d] Insn_local: %lu | Type: %s | Size: %d | Addr: 0x%lx\n",
                            count,
-                           inspect_rec->logical_clock,
                            inspect_rec->insn_count,
                            inspect_rec->store ? "STORE" : "LOAD",
                            inspect_rec->access_size,

@@ -87,13 +87,12 @@ DECLARE_CLASS_CHECKERS(CPUClass, CPU,
 typedef struct CPUWatchpoint CPUWatchpoint;
 
 typedef struct LogRecord {
-    uint64_t logical_clock;
     uint64_t insn_count;
+    uint64_t address;
     char cpu;
     char store;
     char access_size;
     char padding[5];
-    uint64_t address;
 } LogRecord;
 
 /* see physmem.c */
