@@ -435,6 +435,7 @@ void hmp_ramulator_stop(Monitor *mon, const QDict *qdict)
     monitor_printf(mon, "Ramulator: Desactivation de la trace demandée\n");
     ramulator_trace_active = false;
     ramulator_trigger_global_flush();
+    ramulator_flush_local_buffers();
     ramulator_write_metadata();
     monitor_printf(mon, "Ramulator: Desactivation de la trace effectuée\n");
 }

@@ -24,6 +24,36 @@ void ramulator_trigger_global_flush(void)
     }
 }
 
+void ramulator_flush_local_buffers(void)
+{
+    CPUState *cpu;
+    start_exclusive();
+    CPU_FOREACH(cpu) {
+        uint32_t idx = cpu->ramulator_local_idx;
+
+        if (idx == 0 || !cpu->ramulator_log_ptr) {
+            continue;
+        }
+
+        size_t n = (size_t)idx * sizeof(LogRecord);
+        uint8_t *dst = (uint8_t *)cpu->ramulator_log_ptr;
+        uint8_t *end = (uint8_t *)cpu->ramulator_log_end;
+
+        if (dst + n > end) {
+            n = (size_t)(end - dst);
+            idx = n / sizeof(LogRecord);
+            n = idx * sizeof(LogRecord);
+        }
+        
+        if (n > 0) {
+            memcpy(dst, cpu->ramulator_local_buf, n);
+            cpu->ramulator_log_ptr = (uint64_t *)(dst + n);
+        }
+        cpu->ramulator_local_idx = 0;
+    }
+    end_exclusive();
+}
+
 static void ramulator_shm_cleanup(Notifier *n, void *data)
 {
     if (global_shm_base && global_shm_base != MAP_FAILED) {

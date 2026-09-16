@@ -16,5 +16,6 @@ void gen_ramulator_count_instruction(void);
 void gen_ramulator_ptr_increment(int is_store, int size, TCGv_i64 vaddr, unsigned oi);
 void ramulator_reset_counters(void);
 void ramulator_write_metadata(void);
+void ramulator_flush_local_buffers(void);
 
 #endif
