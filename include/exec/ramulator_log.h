@@ -4,7 +4,8 @@
 #include <stdint.h>
 
 #define RAMULATOR_SHM_NAME "/ramulator_qemu_shm"
-#define LOG_BUFFER_SIZE_PER_CPU (1024*1024)
+#define RC_BATCH_SIZE (128 * sizeof(LogRecord))
+#define LOG_BUFFER_SIZE_PER_CPU (341 * RC_BATCH_SIZE)
 
 extern bool ramulator_trace_active;
 
