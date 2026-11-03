@@ -39,6 +39,7 @@
 #include "user/page-protection.h"
 #endif
 #include "vec_internal.h"
+#include "exec/ramulator_log.h"
 
 /* C2.4.7 Multiply and divide */
 /* special cases for 0 and LLONG_MIN are mandated by the standard */
@@ -823,6 +824,14 @@ void HELPER(dc_zva)(CPUARMState *env, uint64_t vaddr_in)
     set_helper_retaddr(ra);
     memset(mem, 0, blocklen);
     clear_helper_retaddr();
+
+#ifndef CONFIG_USER_ONLY
+    if (ramulator_trace_active) {
+        for (int off = 0; off < blocklen; off+=16) {
+            helper_ramulator_write_phys_test(env, vaddr + off, 2, MO_128, mmu_idx);
+        }
+    }
+#endif
 }
 
 void HELPER(unaligned_access)(CPUARMState *env, uint64_t addr,
