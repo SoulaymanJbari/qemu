@@ -10,11 +10,13 @@
 #include "system/system.h"
 #include "tcg/tcg-op-common.h"
 #include "monitor/monitor.h"
+#include "cpu.h"
 
 static void *global_shm_base = NULL;
 static int shm_fd = -1;
 static Notifier ramulator_exit_notifier;
 bool ramulator_trace_active = false;
+uint64_t ramulator_target_ttbr0 = 0;
 
 void ramulator_trigger_global_flush(void)
 {
@@ -107,6 +109,23 @@ void gen_ramulator_count_instruction(void)
     TCGv_i64 insn_count = tcg_temp_new_i64();
     tcg_gen_ld_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
     tcg_gen_addi_i64(insn_count, insn_count, 1);
+    #if defined(TARGET_ARM) || defined(TARGET_AARCH64)
+    if (ramulator_target_ttbr0 != 0) {
+        TCGv_i64 ttbr0 = tcg_temp_new_i64();
+        tcg_gen_ld_i64(ttbr0, tcg_env, offsetof(CPUARMState, cp15.ttbr0_el[1]));
+        tcg_gen_andi_i64(ttbr0, ttbr0, TTBR0_BADDR_MASK);
+
+        TCGv_i64 target = tcg_constant_i64(ramulator_target_ttbr0);
+        TCGv_i64 inc_count = tcg_temp_new_i64();
+        tcg_gen_addi_i64(inc_count, insn_count, 1);
+
+        tcg_gen_movcond_i64(TCG_COND_EQ, insn_count, ttbr0, target, inc_count, insn_count);
+    } else {
+        tcg_gen_addi_i64(insn_count, insn_count, 1);
+    }
+#else
+    tcg_gen_addi_i64(insn_count, insn_count, 1);
+#endif
     tcg_gen_st_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
 }
 
@@ -128,6 +147,7 @@ void ramulator_reset_counters(void)
     CPUState *cpu;
     CPU_FOREACH(cpu) {
         cpu->ramulator_insn_count = 0;
+        cpu->ramulator_local_idx = 0;
         uint8_t *base_shm_cpu = (uint8_t *)cpu->ramulator_log_end - cpu->ramulator_log_size;
         cpu->ramulator_log_ptr = (uint64_t *)base_shm_cpu;
     }

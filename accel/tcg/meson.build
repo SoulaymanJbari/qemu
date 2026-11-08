@@ -6,6 +6,7 @@ common_ss.add(when: 'CONFIG_TCG', if_true: files(
 tcg_specific_ss = ss.source_set()
 tcg_specific_ss.add(files(
   'tcg-all.c',
+  'ramulator.c',
   'cpu-exec.c',
   'tb-maint.c',
   'translate-all.c',
@@ -28,7 +29,6 @@ system_ss.add(when: ['CONFIG_TCG'], if_true: files(
   'tcg-accel-ops.c',
   'tcg-accel-ops-icount.c',
   'tcg-accel-ops-mttcg.c',
-  'ramulator.c',
   'tcg-accel-ops-rr.c',
   'watchpoint.c',
 ))

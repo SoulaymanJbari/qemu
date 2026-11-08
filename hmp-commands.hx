@@ -1823,9 +1823,9 @@ ERST
 
     {
         .name       = "ramulator-start",
-        .args_type  = "",
-        .params     = "",
-        .help       = "Effectue un flush et active la variable de traçage",
+        .args_type  = "ttbr0:l?",
+        .params     = "[ttbr0]",
+        .help       = "Effectue un flush et active le traçage (optionnel: filtrer sur TTBR0)",
         .cmd        = hmp_ramulator_start,
     },
 

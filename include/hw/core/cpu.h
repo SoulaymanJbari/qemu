@@ -89,10 +89,11 @@ typedef struct CPUWatchpoint CPUWatchpoint;
 typedef struct LogRecord {
     uint64_t insn_count;
     uint64_t address;
+    uint32_t ttbr0_pfn;
     char cpu;
     char store;
     char access_size;
-    char padding[5];
+    char padding[1];
 } LogRecord;
 
 /* see physmem.c */

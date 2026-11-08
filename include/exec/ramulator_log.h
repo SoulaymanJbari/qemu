@@ -6,8 +6,10 @@
 #define RAMULATOR_SHM_NAME "/ramulator_qemu_shm"
 #define RC_BATCH_SIZE (128 * sizeof(LogRecord))
 #define LOG_BUFFER_SIZE_PER_CPU (341 * RC_BATCH_SIZE)
+#define TTBR0_BADDR_MASK 0x0000FFFFFFFFFFFFULL
 
 extern bool ramulator_trace_active;
+extern uint64_t ramulator_target_ttbr0;
 
 typedef struct TCGv_i64_d *TCGv_i64;
 

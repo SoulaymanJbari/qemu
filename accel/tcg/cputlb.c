@@ -2952,6 +2952,13 @@ uint64_t cpu_ldq_code_mmu(CPUArchState *env, abi_ptr addr,
 
 void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr, uint32_t is_store, uint32_t size, unsigned mmu_idx)
 {
+#if defined(TARGET_ARM) || defined(TARGET_AARCH64)
+    if (ramulator_target_ttbr0 != 0) {
+        if ((env->cp15.ttbr0_el[1] & TTBR0_BADDR_MASK) != ramulator_target_ttbr0) {
+            return;
+        }
+    }
+#endif
     CPUState *cpu = env_cpu(env);
     LogRecord *log_ptr = (LogRecord *)cpu->ramulator_log_ptr;
     if (!log_ptr || (uintptr_t)log_ptr >= (uintptr_t)cpu->ramulator_log_end) {
@@ -2974,6 +2981,11 @@ void HELPER(ramulator_write_phys_test) (CPUArchState *env, uint64_t vaddr, uint3
     LogRecord *local_rec = &cpu->ramulator_local_buf[idx];
     local_rec->address = phys_addr;
     local_rec->insn_count = cpu->ramulator_insn_count;
+#if defined(TARGET_ARM) || defined(TARGET_AARCH64)
+    local_rec->ttbr0_pfn = (uint32_t)((env->cp15.ttbr0_el[1] & 0x0000FFFFFFFFFFFFULL) >> 12);
+#else
+    local_rec->ttbr0_pfn = 0;
+#endif
     local_rec->cpu = (char)cpu->cpu_index;
     local_rec->store = (char)is_store;
     local_rec->access_size = (char)size;

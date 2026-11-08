@@ -424,6 +424,13 @@ void hmp_info_mtree(Monitor *mon, const QDict *qdict)
 void hmp_ramulator_start(Monitor *mon, const QDict *qdict)
 {
     monitor_printf(mon, "Ramulator: Activation de la trace demandée\n");
+    if (qdict_haskey(qdict, "ttbr0")) {
+        ramulator_target_ttbr0 = (uint64_t)qdict_get_int(qdict, "ttbr0") & TTBR0_BADDR_MASK;
+        monitor_printf(mon, "Ramulator: Filtrage actif sur TTBR0 = 0x%016lx\n", ramulator_target_ttbr0);
+    } else {
+        ramulator_target_ttbr0 = 0;
+        monitor_printf(mon, "Ramulator: Traçage global (aucun filtre TTBR0)\n");
+    }
     ramulator_reset_counters();
     ramulator_trace_active = true;
     ramulator_trigger_global_flush();
