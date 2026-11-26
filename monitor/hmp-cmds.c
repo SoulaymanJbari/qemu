@@ -423,27 +423,22 @@ void hmp_info_mtree(Monitor *mon, const QDict *qdict)
 
 void hmp_ramulator_start(Monitor *mon, const QDict *qdict)
 {
-    monitor_printf(mon, "Ramulator: Activation de la trace demandée\n");
+    uint64_t ttbr0 = 0;
+
     if (qdict_haskey(qdict, "ttbr0")) {
-        ramulator_target_ttbr0 = (uint64_t)qdict_get_int(qdict, "ttbr0") & TTBR0_BADDR_MASK;
-        monitor_printf(mon, "Ramulator: Filtrage actif sur TTBR0 = 0x%016lx\n", ramulator_target_ttbr0);
+        ttbr0 = (uint64_t)qdict_get_int(qdict, "ttbr0") & TTBR0_BADDR_MASK;
+        monitor_printf(mon, "Ramulator: filtrage sur TTBR0 = 0x%016" PRIx64 "\n", ttbr0);
     } else {
-        ramulator_target_ttbr0 = 0;
-        monitor_printf(mon, "Ramulator: Traçage global (aucun filtre TTBR0)\n");
+        monitor_printf(mon, "Ramulator: traçage global (aucun filtre TTBR0)\n");
     }
-    ramulator_reset_counters();
-    ramulator_trace_active = true;
-    ramulator_trigger_global_flush();
-    monitor_printf(mon, "Ramulator: Activation de la trace effectuée\n");
+    ramulator_request(true, ttbr0);
+    monitor_printf(mon, "Ramulator: activation demandée\n");
 }
 
 void hmp_ramulator_stop(Monitor *mon, const QDict *qdict)
 {
-    monitor_printf(mon, "Ramulator: Desactivation de la trace demandée\n");
-    ramulator_trace_active = false;
-    ramulator_trigger_global_flush();
-    ramulator_write_metadata();
-    monitor_printf(mon, "Ramulator: Desactivation de la trace effectuée\n");
+    ramulator_request(false, 0);
+    monitor_printf(mon, "Ramulator: arrêt demandé\n");
 }
 
 void hmp_ramulator_dump_stats(Monitor *mon, const QDict *qdict)

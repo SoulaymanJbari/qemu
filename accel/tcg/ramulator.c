@@ -18,13 +18,10 @@ static Notifier ramulator_exit_notifier;
 bool ramulator_trace_active = false;
 uint64_t ramulator_target_ttbr0 = 0;
 
-void ramulator_trigger_global_flush(void)
-{
-    CPUState *cpu = first_cpu;
-    if (cpu) {
-        tb_flush(cpu);
-    }
-}
+typedef struct RamulatorCtl {
+    bool start;
+    uint64_t ttbr0;
+} RamulatorCtl;
 
 static void ramulator_shm_cleanup(Notifier *n, void *data)
 {
@@ -172,4 +169,39 @@ void ramulator_write_metadata(void)
         }
     }
     fclose(meta);
+}
+
+static void ramulator_ctl_safe(CPUState *cpu, run_on_cpu_data data)
+{
+    RamulatorCtl *ctl = data.host_ptr;
+
+    if (ctl->start) {
+        ramulator_target_ttbr0 = ctl->ttbr0;
+        ramulator_reset_counters();
+        ramulator_trace_active = true;
+    } else {
+        ramulator_trace_active = false;
+        ramulator_write_metadata();
+    }
+
+    tb_flush(cpu);
+
+    printf("Ramulator: trace %s\n",
+           ctl->start ? "activée" : "arrêtée, métadonnées écrites");
+    fflush(stdout);
+    g_free(ctl);
+}
+
+void ramulator_request(bool start, uint64_t ttbr0)
+{
+    RamulatorCtl *ctl;
+
+    if (!first_cpu) {
+        return;
+    }
+    ctl = g_new0(RamulatorCtl, 1);
+    ctl->start = start;
+    ctl->ttbr0 = ttbr0;
+    async_safe_run_on_cpu(first_cpu, ramulator_ctl_safe,
+                          RUN_ON_CPU_HOST_PTR(ctl));
 }
