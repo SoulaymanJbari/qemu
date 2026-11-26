@@ -36,6 +36,7 @@
 #include "tcg-accel-ops.h"
 #include "tcg-accel-ops-rr.h"
 #include "tcg-accel-ops-icount.h"
+#include "exec/ramulator_log.h"
 
 /* Kick all RR vCPUs */
 void rr_kick_vcpu_thread(CPUState *unused)
@@ -313,6 +314,7 @@ void rr_start_vcpu_thread(CPUState *cpu)
 
     g_assert(tcg_enabled());
     tcg_cpu_init_cflags(cpu, false);
+    ramulator_init_shm_for_cpu(cpu->cpu_index, cpu);
 
     if (!single_tcg_cpu_thread) {
         single_tcg_halt_cond = cpu->halt_cond;

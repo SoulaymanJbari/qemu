@@ -106,26 +106,24 @@ void gen_ramulator_count_instruction(void)
     if (!ramulator_trace_active) {
         return;
     }
+
     TCGv_i64 insn_count = tcg_temp_new_i64();
     tcg_gen_ld_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
-    tcg_gen_addi_i64(insn_count, insn_count, 1);
-    #if defined(TARGET_ARM) || defined(TARGET_AARCH64)
+#if defined(TARGET_ARM) || defined(TARGET_AARCH64)
     if (ramulator_target_ttbr0 != 0) {
         TCGv_i64 ttbr0 = tcg_temp_new_i64();
+        TCGv_i64 inc_count = tcg_temp_new_i64();
+
         tcg_gen_ld_i64(ttbr0, tcg_env, offsetof(CPUARMState, cp15.ttbr0_el[1]));
         tcg_gen_andi_i64(ttbr0, ttbr0, TTBR0_BADDR_MASK);
-
-        TCGv_i64 target = tcg_constant_i64(ramulator_target_ttbr0);
-        TCGv_i64 inc_count = tcg_temp_new_i64();
         tcg_gen_addi_i64(inc_count, insn_count, 1);
-
-        tcg_gen_movcond_i64(TCG_COND_EQ, insn_count, ttbr0, target, inc_count, insn_count);
-    } else {
+        tcg_gen_movcond_i64(TCG_COND_EQ, insn_count, ttbr0, tcg_constant_i64(ramulator_target_ttbr0), inc_count, insn_count);
+    } else
+#endif
+    {
         tcg_gen_addi_i64(insn_count, insn_count, 1);
     }
-#else
-    tcg_gen_addi_i64(insn_count, insn_count, 1);
-#endif
+
     tcg_gen_st_i64(insn_count, tcg_env, offsetof(CPUState, ramulator_insn_count) - sizeof(CPUState));
 }
 
